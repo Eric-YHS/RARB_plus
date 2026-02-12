@@ -1,6 +1,6 @@
 # RARB_plus: Retrieval-Augmented Graph Generation for Retrosynthesis
 
-This repository is a research sandbox built on top of **RARB / RetroBridge** and includes additional components for:
+This repository is a research sandbox built on top of **RetroBridge** and includes additional components for:
 
 - **Multi-center structural-weighted fingerprint retrieval** (e.g., BRICS-based multi-center weighting) and exporting both `retrieval_index` and `retrieval_similarity`.
 - **Condition injection from retrieved candidates**, including token-level metadata (rank and optionally similarity) to improve generation.
