@@ -1,27 +1,38 @@
-# Python
+.idea
+__pycache__
+logs/
+checkpoints/
+/data/
+RetroClassifier/
+samples/
+/models/
+ckpt_classifier/
+onmt/
+OpenNMT_py.egg-info/
+round_samples/
+
+
+
+# Uni-rxn .gitignore setting
+# Ignore all .pkl files
+*.pkl
+
+# Except xxx.pkl, which we want to track
+!data/selfies_vocab.pkl
+!data/react_lib_smi.pkl
+
+# Ignore Python compiled files and directories
 __pycache__/
 *.py[cod]
-*.pyd
-.Python
-build/
-dist/
-*.egg-info/
 
-# Virtual envs
-.venv/
-venv/
-ENV/
+# Ignore checkpoint files
+*.ckpt
 
-# IDEs
-.vscode/
-.idea/
+*.pt
 
-# OS
-Thumbs.db
-.DS_Store
+# Large artifacts (avoid pushing >100MB to GitHub)
+*.zip
+*.pth
 
-# Logs / outputs
-*.log
-output/
-checkpoints/
-
+# Notebooks
+.ipynb_checkpoints/
