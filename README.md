@@ -1,5 +1,9 @@
 # RARB_plus: Retrieval-Augmented Graph Generation for Retrosynthesis
 
+[![CI](https://img.shields.io/github/actions/workflow/status/Eric-YHS/RARB_plus/ci.yml?branch=main&logo=githubactions&logoColor=white&label=CI)](https://github.com/Eric-YHS/RARB_plus/actions/workflows/ci.yml)
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+[![Python 3.9](https://img.shields.io/badge/Python-3.9-blue.svg)](#environment)
+
 This repository is a research sandbox built on top of **RetroBridge** and includes additional components for:
 
 - **Multi-center structural-weighted fingerprint retrieval** (e.g., BRICS-based multi-center weighting) and exporting both `retrieval_index` and `retrieval_similarity`.
@@ -152,3 +156,8 @@ python predict.py \
 
 ## Notes
 - `openbabel` is optional; if not installed, evaluation will fall back to RDKit-only SMILES validation.
+
+## License
+
+Released under [CC BY-NC 4.0](LICENSE.txt) (non-commercial use), consistent with the upstream
+RetroBridge code this sandbox is built on.

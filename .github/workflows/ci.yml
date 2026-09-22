@@ -1,0 +1,102 @@
+name: CI
+
+# The training/sampling stack needs torch + torch_geometric + rdkit (and the USPTO graphs),
+# so CI stays static. Checked on every push/PR:
+#   * all Python sources byte-compile (syntax + no invalid escape sequences)
+#   * configs/*.yaml parse and still contain the keys train.py / sample.py read
+#   * commands in README.md point at scripts that actually exist in the repo
+#     (this already caught a `python sample_MIT.py` instruction with no such file)
+#   * no weights / datasets / caches got committed by accident
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tooling
+        run: python -m pip install --upgrade pip pyyaml
+
+      - name: Byte-compile all Python sources
+        run: python -W error::SyntaxWarning -m compileall -q .
+
+      - name: Validate configs
+        run: |
+          python - <<'PY'
+          import sys, yaml
+          from pathlib import Path
+
+          required = ["data", "dataset", "batch_size", "diffusion_steps", "checkpoints", "logs"]
+          failed = False
+          for path in sorted(Path("configs").glob("*.yaml")):
+              try:
+                  cfg = yaml.safe_load(path.read_text(encoding="utf-8"))
+              except Exception as exc:
+                  print(f"::error file={path}::{path} is not valid YAML: {exc}")
+                  failed = True
+                  continue
+              if not isinstance(cfg, dict):
+                  print(f"::error file={path}::{path} must contain a mapping")
+                  failed = True
+                  continue
+              missing = [k for k in required if k not in cfg]
+              if missing:
+                  print(f"::error file={path}::{path} is missing key(s): {', '.join(missing)}")
+                  failed = True
+              else:
+                  print(f"ok  {path}  (data={cfg['data']}, dataset={cfg['dataset']})")
+          sys.exit(1 if failed else 0)
+          PY
+
+      - name: README commands must point at real files
+        run: |
+          python - <<'PY'
+          import re, sys
+          from pathlib import Path
+
+          text = Path("README.md").read_text(encoding="utf-8", errors="replace")
+          # `python something.py ...` inside the README
+          cmd = re.compile(r"python3?\s+([A-Za-z0-9_./\-]+\.py)")
+          all_files = {str(p) for p in Path(".").rglob("*") if p.is_file()}
+          by_name = {}
+          for f in all_files:
+              by_name.setdefault(Path(f).name, []).append(f)
+
+          failed = False
+          for ref in sorted(set(cmd.findall(text))):
+              if Path(ref).is_file():
+                  continue
+              candidates = by_name.get(ref, [])
+              if len(candidates) == 1:
+                  print(f"note  README says 'python {ref}' but the file is at {candidates[0]}")
+                  continue
+              print(f"::error file=README.md::README runs 'python {ref}' but no such file exists")
+              failed = True
+          sys.exit(1 if failed else 0)
+          PY
+
+      - name: Check no generated artifacts are tracked
+        run: |
+          bad=$(git ls-files | grep -E '\.(ckpt|pth|pt|zip|pkl|csv)$|^models/|^data/|^datasets/|^embeddings/|^samples/|^logs/|__pycache__' || true)
+          if [ -n "$bad" ]; then
+            echo "Weights, datasets and caches should stay out of git:"
+            echo "$bad"
+            exit 1
+          fi
+          echo "ok  only source files are tracked"
